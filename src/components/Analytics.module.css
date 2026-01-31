@@ -1,0 +1,574 @@
+.analytics {
+    padding: var(--space-lg);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 100px;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.header h1 {
+    font-size: 2rem;
+    margin-bottom: var(--space-xs);
+}
+
+.header p {
+    color: var(--color-sage-500);
+}
+
+.periodSelector {
+    display: flex;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    padding: 4px;
+}
+
+.periodBtn {
+    padding: var(--space-sm) var(--space-md);
+    background: none;
+    border: none;
+    border-radius: var(--radius-full);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--color-sage-500);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.periodBtn:hover {
+    color: var(--color-sage-700);
+}
+
+.periodBtn.active {
+    background: var(--color-sage-500);
+    color: white;
+}
+
+/* Overview Grid */
+.overviewGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.overviewCard {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+}
+
+.overviewIcon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(122, 139, 104, 0.1);
+    color: var(--color-sage-500);
+    flex-shrink: 0;
+}
+
+.overviewContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.overviewValue {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-sage-700);
+    line-height: 1;
+}
+
+.overviewLabel {
+    font-size: 0.85rem;
+    color: var(--color-sage-500);
+    margin-top: var(--space-xs);
+}
+
+.changeBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    margin-top: var(--space-sm);
+    width: fit-content;
+}
+
+.changeBadge.positive {
+    background: rgba(122, 139, 104, 0.1);
+    color: var(--color-sage-600);
+}
+
+.changeBadge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+/* Chart Card */
+.chartCard {
+    margin-bottom: var(--space-xl);
+}
+
+.chartHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.chartHeader h3 {
+    font-size: 1.1rem;
+    color: var(--color-sage-600);
+}
+
+.weekNav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.weekNav button {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--color-sage-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.weekNav button:hover:not(:disabled) {
+    background: var(--color-sage-100);
+}
+
+.weekNav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.weekNav span {
+    font-size: 0.9rem;
+    color: var(--color-sage-600);
+    font-weight: 500;
+}
+
+.timelineChart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 180px;
+    gap: var(--space-md);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.timelineDay {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.stackedBar {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    width: 100%;
+    height: 150px;
+    gap: 2px;
+}
+
+.focusBar {
+    width: 75%;
+    background: linear-gradient(to top, var(--color-sage-500), var(--color-sage-400));
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    min-height: 2px;
+}
+
+.distractedBar {
+    width: 75%;
+    background: linear-gradient(to top, var(--color-terracotta), var(--color-blush));
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    min-height: 2px;
+}
+
+.timelineDayLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.dayName {
+    font-size: 0.75rem;
+    color: var(--color-sage-500);
+}
+
+.dayNum {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-sage-700);
+}
+
+.chartLegend {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    margin-top: var(--space-md);
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.85rem;
+    color: var(--color-sage-600);
+}
+
+.legendDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* Loading State */
+.loadingOverlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    padding: var(--space-2xl);
+    color: var(--color-sage-500);
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty Chart */
+.emptyChart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    color: var(--color-sage-400);
+    text-align: center;
+}
+
+.emptyHint {
+    font-size: 0.85rem;
+    margin-top: var(--space-sm);
+    opacity: 0.7;
+}
+
+/* Streak Info */
+.streakInfo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.streakItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.streakValue {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-sage-700);
+}
+
+.streakLabel {
+    font-size: 0.75rem;
+    color: var(--color-sage-500);
+    margin-top: var(--space-xs);
+}
+
+/* Quality Stats */
+.qualityStats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.qualityItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-sm);
+}
+
+.qualityLabel {
+    font-size: 0.9rem;
+    color: var(--color-sage-600);
+}
+
+.qualityValue {
+    font-weight: 600;
+    color: var(--color-sage-700);
+}
+
+/* Two Column Layout */
+.twoColumn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+/* Peak Hours Card */
+.peakCard h3,
+.distractorsCard h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1.1rem;
+    color: var(--color-sage-600);
+    margin-bottom: var(--space-lg);
+}
+
+.heatmap {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+}
+
+.heatmapCell {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+    cursor: default;
+}
+
+.heatmapCell:hover {
+    transform: scale(1.1);
+}
+
+.heatmapHour {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.heatmapLegend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    font-size: 0.75rem;
+    color: var(--color-sage-500);
+}
+
+.heatmapGradient {
+    width: 80px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, rgba(122, 139, 104, 0.1) 0%, rgba(122, 139, 104, 1) 100%);
+}
+
+/* Distractors Card */
+.distractorsList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.distractorItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+}
+
+.distractorInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.distractorType {
+    font-weight: 500;
+    color: var(--color-sage-700);
+}
+
+.distractorCount {
+    font-size: 0.85rem;
+    color: var(--color-sage-500);
+}
+
+.distractorTrend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.distractorTrend.down {
+    color: var(--color-sage-600);
+}
+
+.distractorTrend.up {
+    color: var(--color-terracotta);
+}
+
+.distractorTrend.same {
+    color: var(--color-sage-400);
+}
+
+/* Insights Card */
+.insightsCard h3 {
+    font-size: 1.1rem;
+    color: var(--color-sage-600);
+    margin-bottom: var(--space-lg);
+}
+
+.insightsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+}
+
+.insightItem {
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    border-left: 4px solid;
+}
+
+.insightItem.positive {
+    background: rgba(122, 139, 104, 0.08);
+    border-color: var(--color-sage-500);
+}
+
+.insightItem.neutral {
+    background: rgba(201, 160, 138, 0.08);
+    border-color: var(--color-terracotta);
+}
+
+.insightItem.tip {
+    background: rgba(212, 207, 230, 0.15);
+    border-color: var(--color-lavender);
+}
+
+.insightItem h4 {
+    font-size: 1rem;
+    color: var(--color-sage-700);
+    margin-bottom: var(--space-xs);
+}
+
+.insightItem p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .overviewGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .twoColumn {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .analytics {
+        padding: var(--space-md);
+        padding-top: 80px;
+        padding-bottom: 100px;
+    }
+
+    .header {
+        flex-direction: column;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .timelineChart {
+        height: 140px;
+    }
+
+    .stackedBar {
+        height: 110px;
+    }
+
+    .heatmap {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Dark mode */
+:global(.dark) .periodBtn.active {
+    background: var(--color-sage-600);
+}
+
+:global(.dark) .overviewValue {
+    color: #e5e7eb;
+}
+
+:global(.dark) .dayNum {
+    color: #e5e7eb;
+}
+
+:global(.dark) .distractorItem {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+:global(.dark) .distractorType {
+    color: #e5e7eb;
+}
+
+:global(.dark) .insightItem h4 {
+    color: #e5e7eb;
+}
