@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import Navigation from "@/components/Navigation";
 import AppWrapper from "@/components/AppWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 const outfit = Outfit({
   variable: "--font-display",
@@ -41,6 +42,7 @@ export default function RootLayout({
           <AppWrapper>
             <Navigation />
             <main>{children}</main>
+            <Analytics />
           </AppWrapper>
         </AuthProvider>
       </body>
