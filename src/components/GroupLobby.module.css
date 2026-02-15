@@ -1,0 +1,181 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+}
+
+.modal {
+    width: 100%;
+    max-width: 450px;
+    padding: var(--space-2xl) !important;
+    position: relative;
+    text-align: center;
+}
+
+.closeBtn {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background: none;
+    border: none;
+    color: var(--color-sage-400);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.closeBtn:hover {
+    background: var(--color-sage-100);
+    color: var(--color-sage-600);
+}
+
+.header {
+    margin-bottom: var(--space-2xl);
+}
+
+.titleIcon {
+    color: var(--color-sage-500);
+    margin-bottom: var(--space-md);
+}
+
+.header h2 {
+    font-size: 1.75rem;
+    color: var(--color-sage-700);
+    margin-bottom: var(--space-xs);
+}
+
+.header p {
+    color: var(--color-sage-500);
+    font-size: 0.95rem;
+}
+
+.selectionView {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.optionCard {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(122, 139, 104, 0.1);
+    border-radius: var(--radius-lg);
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.optionCard:hover:not(:disabled) {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(122, 139, 104, 0.1);
+    border-color: var(--color-sage-200);
+}
+
+.optionIcon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-sage-100);
+    color: var(--color-sage-600);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.optionText h3 {
+    font-size: 1.1rem;
+    color: var(--color-sage-700);
+    margin-bottom: 2px;
+}
+
+.optionText p {
+    font-size: 0.85rem;
+    color: var(--color-sage-500);
+}
+
+.formView {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.input {
+    width: 100%;
+    padding: var(--space-lg);
+    font-size: 2rem;
+    text-align: center;
+    letter-spacing: 0.5em;
+    border: 2px solid var(--color-sage-100);
+    border-radius: var(--radius-lg);
+    background: white;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--color-sage-700);
+}
+
+.input::placeholder {
+    letter-spacing: normal;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: var(--color-sage-300);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--color-sage-400);
+    box-shadow: 0 0 0 4px rgba(122, 139, 104, 0.1);
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-md);
+}
+
+.error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: -var(--space-sm);
+}
+
+.footer {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid rgba(122, 139, 104, 0.1);
+    display: flex;
+    gap: 8px;
+    color: var(--color-sage-400);
+    font-size: 0.75rem;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.footer svg {
+    flex-shrink: 0;
+}
+
+/* Dark Mode */
+:global(.dark) .optionCard {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+:global(.dark) .optionIcon {
+    background: rgba(122, 139, 104, 0.2);
+}
+
+:global(.dark) .input {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}

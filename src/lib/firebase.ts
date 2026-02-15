@@ -19,4 +19,13 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Log Firebase initialization status
+console.log('🔥 Firebase initialized:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  hasDb: !!db,
+  hasAuth: !!auth
+});
+
 export default app;
+

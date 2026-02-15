@@ -21,10 +21,12 @@ import {
     BarChart3,
     Heart,
     Check,
+    Users,
+    KeyRound,
 } from 'lucide-react';
 import styles from './AuthPage.module.css';
 
-type AuthMode = 'login' | 'register' | 'profile-setup';
+type AuthMode = 'login' | 'register' | 'profile-setup' | 'forgot-password';
 
 const productFeatures = [
     {
@@ -44,6 +46,12 @@ const productFeatures = [
         title: 'Smart Analytics',
         description: 'Discover patterns and optimize your productivity',
         color: '#B8D4E3',
+    },
+    {
+        icon: Users,
+        title: 'Group Study Rooms',
+        description: 'Study together with friends in real-time with shared goals, chat, and screen sharing',
+        color: '#A78BDA',
     },
     {
         icon: Heart,
@@ -94,10 +102,11 @@ const goals = [
     { id: 'track-progress', label: 'Track my progress', icon: BarChart3 },
     { id: 'build-habits', label: 'Build focus habits', icon: Target },
     { id: 'work-life-balance', label: 'Better work-life balance', icon: Clock },
+    { id: 'group-study', label: 'Collaborate in group study', icon: Users },
 ];
 
 export function AuthPage() {
-    const { signInWithGoogle, signInWithEmail, signUpWithEmail, updateUserProfile, loading } = useAuth();
+    const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, updateUserProfile, loading } = useAuth();
 
     const [mode, setMode] = useState<AuthMode>('login');
     const [email, setEmail] = useState('');
@@ -114,6 +123,7 @@ export function AuthPage() {
     const [profession, setProfession] = useState<string>('');
     const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
     const [dailyGoal, setDailyGoal] = useState<number>(60);
+    const [resetSent, setResetSent] = useState(false);
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -170,9 +180,30 @@ export function AuthPage() {
         try {
             await signInWithGoogle();
         } catch (err: any) {
+            console.error('Google Auth Error in AuthPage:', err?.code, err?.message);
             if (err?.code !== 'auth/popup-closed-by-user' &&
                 err?.code !== 'auth/cancelled-popup-request') {
-                setError('Google sign-in failed. Please try again.');
+                setError(`Google sign-in failed: ${err?.code || err?.message || 'Unknown error'}. Please try again.`);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setIsSubmitting(true);
+        try {
+            await resetPassword(email);
+            setResetSent(true);
+        } catch (err: any) {
+            if (err?.code === 'auth/user-not-found') {
+                setError('No account found with this email');
+            } else if (err?.code === 'auth/invalid-email') {
+                setError('Please enter a valid email address');
+            } else {
+                setError('Failed to send reset email. Please try again.');
             }
         } finally {
             setIsSubmitting(false);
@@ -314,7 +345,7 @@ export function AuthPage() {
             {/* Right Panel - Auth Forms */}
             <div className={styles.authPanel}>
                 <AnimatePresence mode="wait">
-                    {mode === 'profile-setup' ? (
+                    {mode === 'profile-setup' && (
                         <motion.div
                             key="profile"
                             className={styles.authCard}
@@ -334,7 +365,6 @@ export function AuthPage() {
                             <p className={styles.authSubtitle}>Help us personalize your experience</p>
 
                             <div className={styles.profileForm}>
-                                {/* Gender */}
                                 <div className={styles.formGroup}>
                                     <label>Gender (optional)</label>
                                     <div className={styles.genderOptions}>
@@ -351,7 +381,6 @@ export function AuthPage() {
                                     </div>
                                 </div>
 
-                                {/* Age */}
                                 <div className={styles.formGroup}>
                                     <label>Age (optional)</label>
                                     <input
@@ -365,7 +394,6 @@ export function AuthPage() {
                                     />
                                 </div>
 
-                                {/* Profession */}
                                 <div className={styles.formGroup}>
                                     <label>What do you do?</label>
                                     <select
@@ -380,7 +408,6 @@ export function AuthPage() {
                                     </select>
                                 </div>
 
-                                {/* Goals */}
                                 <div className={styles.formGroup}>
                                     <label>What are your goals?</label>
                                     <div className={styles.goalsGrid}>
@@ -404,7 +431,6 @@ export function AuthPage() {
                                     </div>
                                 </div>
 
-                                {/* Daily Goal */}
                                 <div className={styles.formGroup}>
                                     <label>Daily focus goal: {dailyGoal} minutes</label>
                                     <input
@@ -441,7 +467,9 @@ export function AuthPage() {
                                 </button>
                             </div>
                         </motion.div>
-                    ) : (
+                    )}
+
+                    {(mode === 'login' || mode === 'register') && (
                         <motion.div
                             key="auth"
                             className={styles.authCard}
@@ -551,6 +579,17 @@ export function AuthPage() {
                                 </motion.button>
                             </form>
 
+                            {mode === 'login' && (
+                                <button
+                                    type="button"
+                                    className={styles.forgotBtn}
+                                    onClick={() => { setMode('forgot-password'); setError(null); setResetSent(false); }}
+                                >
+                                    <KeyRound size={14} />
+                                    Forgot Password?
+                                </button>
+                            )}
+
                             <div className={styles.divider}>
                                 <span>or continue with</span>
                             </div>
@@ -582,6 +621,83 @@ export function AuthPage() {
                             <p className={styles.terms}>
                                 By continuing, you agree to our Terms of Service and Privacy Policy
                             </p>
+                        </motion.div>
+                    )}
+
+                    {mode === 'forgot-password' && (
+                        <motion.div
+                            key="forgot"
+                            className={styles.authCard}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                        >
+                            <button
+                                className={styles.backBtn}
+                                onClick={() => { setMode('login'); setError(null); setResetSent(false); }}
+                            >
+                                <ArrowLeft size={18} />
+                                Back to Sign In
+                            </button>
+
+                            <h2 className={styles.authTitle}>Reset Password</h2>
+                            <p className={styles.authSubtitle}>
+                                Enter your email and we&apos;ll send you a link to reset your password
+                            </p>
+
+                            {error && (
+                                <motion.div
+                                    className={styles.error}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    {error}
+                                </motion.div>
+                            )}
+
+                            {resetSent ? (
+                                <motion.div
+                                    className={styles.successMsg}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                >
+                                    <Check size={24} />
+                                    <h3>Email Sent!</h3>
+                                    <p>Check your inbox for a password reset link. It may take a minute to arrive.</p>
+                                    <button
+                                        className={styles.primaryBtn}
+                                        onClick={() => { setMode('login'); setResetSent(false); }}
+                                    >
+                                        Back to Sign In
+                                        <ArrowRight size={18} />
+                                    </button>
+                                </motion.div>
+                            ) : (
+                                <form onSubmit={handleResetPassword} className={styles.authForm}>
+                                    <div className={styles.inputGroup}>
+                                        <Mail size={18} className={styles.inputIcon} />
+                                        <input
+                                            type="email"
+                                            placeholder="Email Address"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            className={styles.input}
+                                        />
+                                    </div>
+
+                                    <motion.button
+                                        type="submit"
+                                        className={styles.primaryBtn}
+                                        disabled={isSubmitting}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+                                        <ArrowRight size={18} />
+                                    </motion.button>
+                                </form>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

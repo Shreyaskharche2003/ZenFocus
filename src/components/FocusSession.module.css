@@ -228,13 +228,36 @@
 }
 
 /* Active session styles */
+.sessionLayout {
+    display: flex;
+    gap: var(--space-xl);
+    width: 100%;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 500px;
+}
+
+.mainContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xl);
+    max-width: 600px;
+}
+
+.sidePanel {
+    flex-shrink: 0;
+    position: sticky;
+    top: var(--space-xl);
+}
+
 .activeSession {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--space-xl);
     width: 100%;
-    max-width: 600px;
 }
 
 .timer {
@@ -484,6 +507,18 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .sessionLayout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidePanel {
+        position: static;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
     .container {
         padding: var(--space-lg);
     }

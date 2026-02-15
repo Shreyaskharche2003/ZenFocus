@@ -418,6 +418,51 @@
     font-size: 0.8rem;
 }
 
+.forgotBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--color-sage-500);
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-top: var(--space-sm);
+    padding: var(--space-xs) 0;
+    transition: color 0.2s;
+}
+
+.forgotBtn:hover {
+    color: var(--color-sage-700);
+    text-decoration: underline;
+}
+
+.successMsg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+    padding: var(--space-xl);
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: var(--radius-xl);
+    color: #15803d;
+}
+
+.successMsg h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #15803d;
+}
+
+.successMsg p {
+    font-size: 0.9rem;
+    color: var(--color-sage-600);
+    line-height: 1.5;
+}
+
 /* ========================================
    PROFILE SETUP FORM
 ======================================== */

@@ -112,3 +112,31 @@ export interface SessionState {
     currentFocusState: FocusState;
     stateHistory: EventSegment[];
 }
+
+// Group Session Types
+export interface Participant {
+    id: string;
+    displayName: string;
+    photoURL?: string;
+    currentState: FocusState;
+    lastSeen: number;
+}
+
+export interface ChatMessage {
+    id: string;
+    senderId: string;
+    senderName: string;
+    text: string;
+    timestamp: number;
+}
+
+export interface GroupSession {
+    id: string;
+    hostId: string;
+    inviteCode: string; // 6-digit code
+    participants: Record<string, Participant>;
+    messages?: ChatMessage[];
+    status: 'active' | 'in_session' | 'completed';
+    createdAt: number;
+}
+

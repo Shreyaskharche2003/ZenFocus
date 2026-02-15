@@ -5,14 +5,18 @@ import {
     User,
     onAuthStateChanged,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     updateProfile,
     signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '@/lib/firebase';
 import { User as ZenFocusUser, UserPreferences, UserStats } from '@/lib/types';
+import { sendWelcomeEmail } from '@/lib/welcomeEmail';
 
 export interface UserProfile {
     gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
@@ -29,6 +33,7 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
     updateUserProfile: (profile: UserProfile) => Promise<void>;
     signOut: () => Promise<void>;
     needsProfileSetup: boolean;
@@ -64,16 +69,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Handle user data creation/fetching
     const handleUserData = async (firebaseUser: User, isNewUser: boolean = false) => {
         try {
+            console.log('📝 handleUserData called for:', firebaseUser.email, 'uid:', firebaseUser.uid);
             const userDocRef = doc(db, 'users', firebaseUser.uid);
+
+            console.log('📝 Fetching user doc from Firestore...');
             const userDoc = await getDoc(userDocRef);
+            console.log('📝 User doc exists:', userDoc.exists());
 
             if (userDoc.exists()) {
                 const userData = userDoc.data() as ZenFocusUser;
+                console.log('✅ Existing user loaded:', userData.displayName);
                 setZenFocusUser(userData);
-                // Check if profile is complete
                 setNeedsProfileSetup(!userData.profile?.profession);
             } else {
-                // Create new user document - Firestore doesn't accept undefined
+                console.log('📝 Creating new user document...');
                 const newUser: Record<string, any> = {
                     id: firebaseUser.uid,
                     email: firebaseUser.email || '',
@@ -83,17 +92,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     createdAt: Date.now(),
                 };
 
-                // Only add photoURL if it exists
                 if (firebaseUser.photoURL) {
                     newUser.photoURL = firebaseUser.photoURL;
                 }
 
                 await setDoc(userDocRef, newUser);
+                console.log('✅ New user document created in Firestore');
                 setZenFocusUser(newUser as ZenFocusUser);
                 setNeedsProfileSetup(true);
+
+                // Send welcome email (non-blocking)
+                if (firebaseUser.email) {
+                    sendWelcomeEmail(firebaseUser.email, newUser.displayName);
+                }
             }
-        } catch (error) {
-            console.error('Error handling user data:', error);
+        } catch (error: any) {
+            console.error('❌ Error handling user data:', error?.code, error?.message, error);
+            // Still set user so the app doesn't get stuck on loading
             const fallbackUser: ZenFocusUser = {
                 id: firebaseUser.uid,
                 email: firebaseUser.email || '',
@@ -105,31 +120,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (firebaseUser.photoURL) {
                 fallbackUser.photoURL = firebaseUser.photoURL;
             }
+            console.log('⚠️ Using fallback user data (Firestore may have permission issues)');
             setZenFocusUser(fallbackUser);
             if (isNewUser) setNeedsProfileSetup(true);
         }
     };
 
     useEffect(() => {
+        console.log('🔵 AuthContext: Initializing...');
+
+        // Safety timeout - never stay stuck on loading
+        const safetyTimeout = setTimeout(() => {
+            setLoading(prev => {
+                if (prev) {
+                    console.warn('⚠️ Auth loading timeout reached - forcing load complete');
+                    return false;
+                }
+                return prev;
+            });
+        }, 10000);
+
+        // Check for redirect result (Google sign-in)
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (result?.user) {
+                    console.log('🟢 Redirect result received:', result.user.email);
+                    try {
+                        await handleUserData(result.user);
+                    } catch (e) {
+                        console.error('❌ handleUserData failed after redirect:', e);
+                    }
+                } else {
+                    console.log('🔵 No redirect result (normal page load)');
+                }
+            })
+            .catch((error) => {
+                console.error('❌ Redirect error:', error);
+            });
+
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            console.log('🔵 Auth state changed:', firebaseUser?.email || 'null', 'uid:', firebaseUser?.uid || 'none');
             setUser(firebaseUser);
 
             if (firebaseUser) {
-                await handleUserData(firebaseUser);
+                try {
+                    await handleUserData(firebaseUser);
+                } catch (e) {
+                    console.error('❌ handleUserData failed in onAuthStateChanged:', e);
+                }
             } else {
                 setZenFocusUser(null);
                 setNeedsProfileSetup(false);
             }
 
+            console.log('✅ Auth loading complete');
             setLoading(false);
+            clearTimeout(safetyTimeout);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            clearTimeout(safetyTimeout);
+        };
     }, []);
 
     const signInWithGoogle = async () => {
-        const result = await signInWithPopup(auth, googleProvider);
-        await handleUserData(result.user);
+        try {
+            console.log('🔵 Attempting Google sign-in with popup...');
+            googleProvider.setCustomParameters({
+                prompt: 'select_account'
+            });
+            const result = await signInWithPopup(auth, googleProvider);
+            console.log('🟢 Google sign-in success:', result.user.email);
+            await handleUserData(result.user);
+        } catch (error: any) {
+            console.error('❌ Google sign-in error:', error?.code, error?.message, error);
+
+            if (error?.code === 'auth/popup-closed-by-user' ||
+                error?.code === 'auth/cancelled-popup-request') {
+                // User closed the popup - don't show error
+                console.log('ℹ️ User closed the Google sign-in popup');
+            } else if (error?.code === 'auth/unauthorized-domain') {
+                throw new Error('This domain is not authorized. Add localhost to Firebase Console → Authentication → Settings → Authorized domains.');
+            } else if (error?.code === 'auth/operation-not-allowed') {
+                throw new Error('Google Sign-In is not enabled. Go to Firebase Console → Authentication → Sign-in method → Enable Google.');
+            } else if (error?.code === 'auth/internal-error') {
+                throw new Error('Firebase internal error. Check if Google Sign-In is enabled in Firebase Console and OAuth consent screen is configured.');
+            } else {
+                throw error;
+            }
+        }
     };
 
     const signInWithEmail = async (email: string, password: string) => {
@@ -141,6 +221,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(result.user, { displayName });
         await handleUserData(result.user, true);
+    };
+
+    const resetPassword = async (email: string) => {
+        console.log('🔵 Sending password reset email to:', email);
+        await sendPasswordResetEmail(auth, email);
+        console.log('✅ Password reset email sent successfully');
     };
 
     const updateUserProfile = async (profile: UserProfile) => {
@@ -184,6 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             signInWithGoogle,
             signInWithEmail,
             signUpWithEmail,
+            resetPassword,
             updateUserProfile,
             signOut,
             needsProfileSetup,

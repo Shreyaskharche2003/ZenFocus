@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Square, Camera, CameraOff, Volume2, VolumeX, AlertCircle, Eye, Focus, Zap, Shield, Clock } from 'lucide-react';
+import { Play, Pause, Square, Camera, CameraOff, Volume2, VolumeX, AlertCircle, Eye, Focus, Zap, Shield, Clock, Users } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAuth } from '@/lib/AuthContext';
 import { getVisionProcessor, destroyVisionProcessor } from '@/lib/visionProcessor';
@@ -12,6 +12,11 @@ import Button from '@/components/Button';
 import FocusIndicator from '@/components/FocusIndicator';
 import GlassCard from '@/components/GlassCard';
 import SessionSummary from '@/components/SessionSummary';
+import GroupLobby from '@/components/GroupLobby';
+import GroupRoom from '@/components/GroupRoom';
+import GroupSessionPanel from '@/components/GroupSessionPanel';
+import { useRoomStore } from '@/store/roomStore';
+import { listenToRoom, updateParticipantStatus, leaveRoom, deleteRoom, startRoomSession } from '@/lib/groupSessionService';
 import styles from './FocusSession.module.css';
 
 export function FocusSession() {
@@ -47,6 +52,9 @@ export function FocusSession() {
     const [cameraReady, setCameraReady] = useState(false);
     const [trackingMode, setTrackingMode] = useState<'AI' | 'TIMER'>('AI');
     const [completedSessionData, setCompletedSessionData] = useState<Session | null>(null);
+    const [showGroupLobby, setShowGroupLobby] = useState(false);
+
+    const { currentRoom, isInRoom, setRoom, clearRoom } = useRoomStore();
 
     // Sound effect
     const playStartSound = useCallback(() => {
@@ -137,6 +145,40 @@ export function FocusSession() {
         };
     }, [isActive, isPaused, updateElapsedTime]);
 
+    // Room listener and status update
+    useEffect(() => {
+        let unsubscribe: (() => void) | undefined;
+
+        if (isInRoom && currentRoom?.id) {
+            console.log('📡 Listening to room updates:', currentRoom.id);
+            unsubscribe = listenToRoom(currentRoom.id, (room) => {
+                setRoom(room);
+            });
+        }
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [isInRoom, currentRoom?.id]);
+
+    // Auto-start session for non-host users when host starts
+    useEffect(() => {
+        if (!isActive && isInRoom && currentRoom?.status === 'in_session' && zenFocusUser) {
+            const isHost = zenFocusUser.id === currentRoom.hostId;
+            if (!isHost) {
+                console.log('🟢 Host started the session, auto-starting for joined user...');
+                handleStartSession('AI');
+            }
+        }
+    }, [currentRoom?.status]);
+
+    // Sync focus state to room
+    useEffect(() => {
+        if (isActive && isInRoom && currentRoom?.id && zenFocusUser) {
+            updateParticipantStatus(currentRoom.id, zenFocusUser.id, currentFocusState);
+        }
+    }, [isActive, isInRoom, currentRoom?.id, currentFocusState, zenFocusUser]);
+
     // Start camera feed for AI sessions
     useEffect(() => {
         const startAI = async () => {
@@ -207,10 +249,21 @@ export function FocusSession() {
         const completed = endSession();
         if (trackingMode === 'AI') destroyVisionProcessor();
 
+        // Save the room ID before clearing
+        const roomId = currentRoom?.id;
+        const wasInRoom = isInRoom;
+
+        // Handle group cleanup - leave room first
+        if (wasInRoom && roomId && zenFocusUser) {
+            await leaveRoom(roomId, zenFocusUser.id);
+            clearRoom();
+        }
+
         setShowConfirmEnd(false);
         setFrameAnalysis(null);
         landmarksRef.current = null;
 
+        // Save session data for this user's analytics
         if (completed) {
             setCompletedSessionData(completed);
             if (zenFocusUser) {
@@ -219,6 +272,13 @@ export function FocusSession() {
                     await updateUserStatsInFirestore(zenFocusUser.id, completed);
                 } catch (e) { console.error('Cloud save failed:', e); }
             }
+        }
+
+        // Delete the room from database after saving data
+        if (wasInRoom && roomId) {
+            try {
+                await deleteRoom(roomId);
+            } catch (e) { console.error('Room cleanup failed:', e); }
         }
     };
 
@@ -268,6 +328,17 @@ export function FocusSession() {
                             <h3>Manual Timer</h3>
                             <p>Classic stopwatch without camera. Privacy first.</p>
                         </motion.div>
+
+                        <motion.div
+                            className={`${styles.modeCard} ${isInRoom ? styles.activeMode : ''}`}
+                            onClick={() => setShowGroupLobby(true)}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Users size={32} />
+                            <h3>{isInRoom ? 'Room Ready' : 'With Friends'}</h3>
+                            <p>{isInRoom ? `Invite Code: ${currentRoom?.inviteCode}` : 'Study together with peers in real-time.'}</p>
+                            {isInRoom && <div className={styles.modeBadge}>Joined</div>}
+                        </motion.div>
                     </div>
 
                     {error && <div className={styles.error}>{error}</div>}
@@ -291,55 +362,67 @@ export function FocusSession() {
             <AnimatePresence>
                 {isActive && (
                     <motion.div className={styles.activeSession} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        <div className={styles.timer}>
-                            <span className={styles.timerValue}>{formatTime(elapsedTime)}</span>
-                            <FocusIndicator state={currentFocusState} size="lg" />
-                        </div>
+                        <div className={styles.sessionLayout}>
+                            <div className={styles.mainContent}>
+                                <div className={styles.timer}>
+                                    <span className={styles.timerValue}>{formatTime(elapsedTime)}</span>
+                                    <FocusIndicator state={currentFocusState} size="lg" />
+                                </div>
 
-                        <GlassCard className={styles.cameraCard}>
-                            {trackingMode === 'AI' ? (
-                                <div className={styles.cameraWrapper}>
-                                    {!cameraReady && (
-                                        <div className={styles.cameraLoading}>Starting camera...</div>
+                                <GlassCard className={styles.cameraCard}>
+                                    {trackingMode === 'AI' ? (
+                                        <div className={styles.cameraWrapper}>
+                                            {!cameraReady && (
+                                                <div className={styles.cameraLoading}>Starting camera...</div>
+                                            )}
+                                            <video ref={videoRef} className={styles.video} playsInline muted style={{ opacity: cameraEnabled && cameraReady ? 1 : 0, transform: 'scaleX(-1)' }} />
+                                            <canvas ref={overlayCanvasRef} className={styles.overlayCanvas} style={{ transform: 'scaleX(-1)' }} />
+                                            <div className={styles.focusBorder} style={{ borderColor: getStateColor() }} />
+
+                                            <div className={styles.statusOverlay}>
+                                                <div className={styles.statusBadge} style={{ backgroundColor: getStateColor() }}>{currentFocusState}</div>
+                                                <div className={styles.privacyBadge}><Shield size={12} /> LOCAL</div>
+                                            </div>
+
+                                            <div className={styles.cameraControls}>
+                                                <button className={styles.cameraToggle} onClick={() => setCameraEnabled(!cameraEnabled)}>
+                                                    {cameraEnabled ? <Camera size={18} /> : <CameraOff size={18} />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className={styles.stopwatchView}>
+                                            <Clock size={64} color="var(--color-sage-400)" />
+                                            <h3>Stopwatch Active</h3>
+                                            <p>AI tracking is disabled for this session.</p>
+                                        </div>
                                     )}
-                                    <video ref={videoRef} className={styles.video} playsInline muted style={{ opacity: cameraEnabled && cameraReady ? 1 : 0, transform: 'scaleX(-1)' }} />
-                                    <canvas ref={overlayCanvasRef} className={styles.overlayCanvas} style={{ transform: 'scaleX(-1)' }} />
-                                    <div className={styles.focusBorder} style={{ borderColor: getStateColor() }} />
+                                </GlassCard>
 
-                                    <div className={styles.statusOverlay}>
-                                        <div className={styles.statusBadge} style={{ backgroundColor: getStateColor() }}>{currentFocusState}</div>
-                                        <div className={styles.privacyBadge}><Shield size={12} /> LOCAL</div>
+                                {trackingMode === 'AI' && frameAnalysis && (
+                                    <div className={styles.analysisInfo}>
+                                        <div className={styles.analysisItem}>
+                                            <span>Activity</span>
+                                            <span style={{ fontWeight: 600, color: 'var(--color-sage-600)' }}>
+                                                {frameAnalysis.activity?.replace('_', ' ').toUpperCase() || 'ANALYZING...'}
+                                            </span>
+                                        </div>
+                                        <div className={styles.analysisItem}>
+                                            <span>Gaze</span>
+                                            <span>{frameAnalysis.gazeDirection.toUpperCase()}</span>
+                                        </div>
                                     </div>
-
-                                    <div className={styles.cameraControls}>
-                                        <button className={styles.cameraToggle} onClick={() => setCameraEnabled(!cameraEnabled)}>
-                                            {cameraEnabled ? <Camera size={18} /> : <CameraOff size={18} />}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className={styles.stopwatchView}>
-                                    <Clock size={64} color="var(--color-sage-400)" />
-                                    <h3>Stopwatch Active</h3>
-                                    <p>AI tracking is disabled for this session.</p>
-                                </div>
-                            )}
-                        </GlassCard>
-
-                        {trackingMode === 'AI' && frameAnalysis && (
-                            <div className={styles.analysisInfo}>
-                                <div className={styles.analysisItem}>
-                                    <span>Activity</span>
-                                    <span style={{ fontWeight: 600, color: 'var(--color-sage-600)' }}>
-                                        {frameAnalysis.activity?.replace('_', ' ').toUpperCase() || 'ANALYZING...'}
-                                    </span>
-                                </div>
-                                <div className={styles.analysisItem}>
-                                    <span>Gaze</span>
-                                    <span>{frameAnalysis.gazeDirection.toUpperCase()}</span>
-                                </div>
+                                )}
                             </div>
-                        )}
+
+
+                            {isInRoom && currentRoom && (
+                                <GroupSessionPanel onLeaveRoom={async () => {
+                                    // End session first, then cleanup room
+                                    confirmEndSession();
+                                }} />
+                            )}
+                        </div>
 
                         <div className={styles.controls}>
                             <Button variant="secondary" onClick={handleTogglePause}>{isPaused ? 'Resume' : 'Pause'}</Button>
@@ -369,6 +452,22 @@ export function FocusSession() {
                     <SessionSummary session={completedSessionData} onClose={() => setCompletedSessionData(null)} />
                 )}
             </AnimatePresence>
+
+            <AnimatePresence>
+                {showGroupLobby && (
+                    <GroupLobby onClose={() => setShowGroupLobby(false)} />
+                )}
+            </AnimatePresence>
+
+            {isInRoom && currentRoom && !isActive && (
+                <GroupRoom onStartSession={async () => {
+                    // Host updates room status first, then starts session
+                    if (currentRoom?.id) {
+                        await startRoomSession(currentRoom.id);
+                    }
+                    handleStartSession('AI');
+                }} />
+            )}
         </motion.div>
     );
 }
