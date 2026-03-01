@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ZenFocus - Stay Productive with AI",
     description: "Reduce distractions and improve your study sessions using AI. Try ZenFocus today.",
+  },
+  verification: {
+    google: "rwjYlurAMxdlF5M-DcZ8q69p2eM81R6WhkzUVidDTcE"
   }
 };
 
