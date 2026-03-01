@@ -7,7 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/api/'],
         },
-        // Replace with your actual domain once you have it
-        sitemap: 'https://zenfocus.vercel.app/sitemap.xml',
+        sitemap: 'https://zenfocused.vercel.app/sitemap.xml',
     };
 }
