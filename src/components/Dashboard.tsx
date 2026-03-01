@@ -113,6 +113,22 @@ export function Dashboard() {
                 <p className={styles.greeting}>Ready for a mindful focus session?</p>
             </motion.div>
 
+            {/* Decorative Doodles */}
+            <div className={styles.doodleContainer}>
+                <motion.svg className={styles.doodle} style={{ top: '15%', right: '5%' }} animate={{ y: [-5, 5, -5], rotate: [-3, 3, -3] }} transition={{ duration: 6, repeat: Infinity }} width="60" height="60" viewBox="0 0 60 60" fill="none">
+                    <path d="M30 5 L35 25 L55 30 L35 35 L30 55 L25 35 L5 30 L25 25 Z" stroke="rgba(122,139,104,0.15)" strokeWidth="2" fill="none" />
+                </motion.svg>
+                <motion.svg className={styles.doodle} style={{ top: '40%', left: '3%' }} animate={{ y: [-8, 4, -8], rotate: [0, 5, 0] }} transition={{ duration: 8, repeat: Infinity }} width="50" height="50" viewBox="0 0 50 50" fill="none">
+                    <circle cx="25" cy="25" r="18" stroke="rgba(201,160,138,0.12)" strokeWidth="2" fill="none" strokeDasharray="5 5" />
+                </motion.svg>
+                <motion.svg className={styles.doodle} style={{ bottom: '20%', right: '8%' }} animate={{ y: [-4, 6, -4] }} transition={{ duration: 7, repeat: Infinity }} width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M5 35 L20 5 L35 35 M12 25 L28 25" stroke="rgba(212,207,230,0.15)" strokeWidth="2" fill="none" strokeLinecap="round" />
+                </motion.svg>
+                <motion.svg className={styles.doodle} style={{ top: '60%', left: '6%' }} animate={{ y: [-6, 3, -6], rotate: [-2, 4, -2] }} transition={{ duration: 9, repeat: Infinity }} width="45" height="45" viewBox="0 0 45 45" fill="none">
+                    <path d="M10 35 Q10 10 22 10 Q35 10 35 22 Q35 35 22 35 L10 35 Z M22 10 L22 2 M18 2 L26 2" stroke="rgba(122,139,104,0.12)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                </motion.svg>
+            </div>
+
             {/* Loading State */}
             {isLoading && (
                 <motion.div className={styles.loadingOverlay} variants={itemVariants}>

@@ -5,6 +5,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-2xl);
+    padding-top: 100px;
     transition: background var(--transition-slower);
 }
 
@@ -603,4 +604,63 @@
 
 :global(.dark) .modalContent {
     background: #1a1a1f;
+}
+
+/* Desktop Setup */
+.desktopSetup {
+    width: 100%;
+    max-width: 500px;
+    padding: var(--space-lg);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.setupTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-sage-700);
+    margin-bottom: var(--space-xs);
+}
+
+.setupDesc {
+    font-size: 0.85rem;
+    color: var(--color-sage-500);
+    margin-bottom: var(--space-md);
+}
+
+.monitorOptions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.monitorBtn {
+    padding: var(--space-sm) var(--space-md);
+    border: 1.5px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    background: transparent;
+    font-size: 0.85rem;
+    font-family: var(--font-body);
+    color: var(--color-sage-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.monitorBtn:hover {
+    background: var(--color-sage-50);
+    border-color: var(--color-sage-300);
+}
+
+.monitorActive {
+    background: var(--color-sage-500) !important;
+    color: white !important;
+    border-color: var(--color-sage-500) !important;
 }

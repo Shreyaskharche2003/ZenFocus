@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Square, Camera, CameraOff, Volume2, VolumeX, AlertCircle, Eye, Focus, Zap, Shield, Clock, Users } from 'lucide-react';
+import { Play, Pause, Square, Camera, CameraOff, Volume2, VolumeX, AlertCircle, Eye, Focus, Zap, Shield, Clock, Users, Monitor } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAuth } from '@/lib/AuthContext';
 import { getVisionProcessor, destroyVisionProcessor } from '@/lib/visionProcessor';
@@ -53,6 +53,7 @@ export function FocusSession() {
     const [trackingMode, setTrackingMode] = useState<'AI' | 'TIMER'>('AI');
     const [completedSessionData, setCompletedSessionData] = useState<Session | null>(null);
     const [showGroupLobby, setShowGroupLobby] = useState(false);
+    const [monitorPosition, setMonitorPosition] = useState<'none' | 'left' | 'right' | 'center'>('none');
 
     const { currentRoom, isInRoom, setRoom, clearRoom } = useRoomStore();
 
@@ -229,6 +230,8 @@ export function FocusSession() {
                 const visionProcessor = getVisionProcessor();
                 const initialized = await visionProcessor.initialize();
                 if (!initialized) throw new Error('AI Engine failed to start');
+                // Apply monitor position setting
+                visionProcessor.setMonitorPosition(monitorPosition);
             }
 
             playStartSound();
@@ -340,6 +343,30 @@ export function FocusSession() {
                             {isInRoom && <div className={styles.modeBadge}>Joined</div>}
                         </motion.div>
                     </div>
+
+                    {/* Desktop Setup */}
+                    {trackingMode === 'AI' && (
+                        <div className={styles.desktopSetup}>
+                            <h4 className={styles.setupTitle}>
+                                <Monitor size={18} />
+                                External Monitor Setup
+                            </h4>
+                            <p className={styles.setupDesc}>
+                                Using a desktop monitor? Tell us where it is so we don&apos;t count it as distracted
+                            </p>
+                            <div className={styles.monitorOptions}>
+                                {(['none', 'left', 'center', 'right'] as const).map((pos) => (
+                                    <button
+                                        key={pos}
+                                        className={`${styles.monitorBtn} ${monitorPosition === pos ? styles.monitorActive : ''}`}
+                                        onClick={() => setMonitorPosition(pos)}
+                                    >
+                                        {pos === 'none' ? '🚫 None' : pos === 'left' ? '⬅️ Left' : pos === 'center' ? '🖥️ Center' : '➡️ Right'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {error && <div className={styles.error}>{error}</div>}
 

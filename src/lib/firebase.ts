@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -17,9 +17,8 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
 
-// Log Firebase initialization status
+// Log Firebase initialization status (no secrets logged)
 console.log('🔥 Firebase initialized:', {
   projectId: firebaseConfig.projectId,
   authDomain: firebaseConfig.authDomain,
@@ -28,4 +27,3 @@ console.log('🔥 Firebase initialized:', {
 });
 
 export default app;
-

@@ -3,8 +3,9 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: var(--z-sticky);
+    z-index: 1000;
     padding: var(--space-md) var(--space-lg);
+    pointer-events: none;
 }
 
 .container {
@@ -14,12 +15,13 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-sm) var(--space-lg);
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-full);
-    box-shadow: var(--glass-shadow);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
 }
 
 .logo {

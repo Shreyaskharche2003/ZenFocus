@@ -75,12 +75,12 @@ export default function GroupSessionPanel({ onLeaveRoom }: GroupSessionPanelProp
             setIsScreenSharing(false);
         } else {
             try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: 'always' } as any,
+                    audio: false
+                });
                 setScreenStream(stream);
                 setIsScreenSharing(true);
-                if (screenVideoRef.current) {
-                    screenVideoRef.current.srcObject = stream;
-                }
                 stream.getTracks()[0].onended = () => {
                     setIsScreenSharing(false);
                     setScreenStream(null);
@@ -90,6 +90,13 @@ export default function GroupSessionPanel({ onLeaveRoom }: GroupSessionPanelProp
             }
         }
     };
+
+    // Connect screen stream to video element when it becomes available
+    useEffect(() => {
+        if (screenStream && screenVideoRef.current) {
+            screenVideoRef.current.srcObject = screenStream;
+        }
+    }, [screenStream, isScreenSharing]);
 
     const addGoal = () => {
         if (!goalInput.trim()) return;

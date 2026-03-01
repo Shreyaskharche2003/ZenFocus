@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@mediapipe/tasks-vision": "^0.10.32",
     "@vercel/analytics": "^1.6.1",
     "firebase": "^12.8.0",

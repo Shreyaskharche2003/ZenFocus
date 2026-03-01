@@ -11,6 +11,7 @@ interface VisionConfig {
     minConfidence: number;
     stateBufferSize: number;
     studyMode: boolean; // If true, looking down (at book/desk) is considered focused
+    monitorPosition: 'none' | 'left' | 'right' | 'center'; // External monitor position
 }
 
 const DEFAULT_CONFIG: VisionConfig = {
@@ -18,6 +19,7 @@ const DEFAULT_CONFIG: VisionConfig = {
     minConfidence: 0.6,
     stateBufferSize: 15, // More frames for smoother detection
     studyMode: true, // Allow looking down as focused (book/writing)
+    monitorPosition: 'none', // No external monitor by default
 };
 
 // Activity patterns
@@ -370,8 +372,18 @@ export class VisionProcessor {
             }
         }
 
-        // Looking LEFT/RIGHT = Potentially distracted
+        // Looking LEFT/RIGHT = Potentially distracted (unless external monitor is there)
         if (analysis.gazeDirection === 'left' || analysis.gazeDirection === 'right') {
+            // Check if user is looking at external monitor
+            if (this.config.monitorPosition === analysis.gazeDirection) {
+                this.lookingAwayFrames = 0;
+                return {
+                    state: 'FOCUSED',
+                    confidence: 0.85,
+                    activity: 'screen_work'
+                };
+            }
+
             this.lookingAwayFrames++;
 
             // Brief glances are OK (checking clock, window, etc.)
@@ -460,6 +472,11 @@ export class VisionProcessor {
     setStudyMode(enabled: boolean): void {
         this.config.studyMode = enabled;
         console.log(`📚 Study mode ${enabled ? 'enabled' : 'disabled'}`);
+    }
+
+    setMonitorPosition(position: 'none' | 'left' | 'right' | 'center'): void {
+        this.config.monitorPosition = position;
+        console.log('🖥️ Monitor position set to:', position);
     }
 
     updateConfig(config: Partial<VisionConfig>): void {

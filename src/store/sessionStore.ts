@@ -11,6 +11,8 @@ interface SessionStore {
     stateHistory: EventSegment[];
     lastStateChange: number;
     cameraPermission: 'pending' | 'granted' | 'denied';
+    totalPausedTime: number;
+    pauseStartTime: number | null;
 
     // Actions
     startSession: (userId: string) => void;
@@ -35,6 +37,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     stateHistory: [],
     lastStateChange: 0,
     cameraPermission: 'pending',
+    totalPausedTime: 0,
+    pauseStartTime: null,
 
     // Actions
     startSession: (userId: string) => {
@@ -58,6 +62,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
             currentFocusState: 'FOCUSED',
             stateHistory: [],
             lastStateChange: now,
+            totalPausedTime: 0,
+            pauseStartTime: null,
         });
     },
 
@@ -77,37 +83,45 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
         set({
             isPaused: true,
+            pauseStartTime: now,
             stateHistory: [...stateHistory, newSegment],
             currentSession: { ...currentSession, status: 'paused' },
         });
     },
 
     resumeSession: () => {
-        const { currentSession } = get();
+        const { currentSession, pauseStartTime, totalPausedTime } = get();
         if (!currentSession) return;
+
+        const now = Date.now();
+        const pausedDuration = pauseStartTime ? now - pauseStartTime : 0;
 
         set({
             isPaused: false,
-            lastStateChange: Date.now(),
+            lastStateChange: now,
+            pauseStartTime: null,
+            totalPausedTime: totalPausedTime + pausedDuration,
             currentSession: { ...currentSession, status: 'active' },
         });
     },
 
     endSession: () => {
-        const { currentSession, stateHistory, currentFocusState, lastStateChange, elapsedTime } = get();
+        const { currentSession, stateHistory, currentFocusState, lastStateChange, elapsedTime, isPaused, pauseStartTime, totalPausedTime } = get();
         if (!currentSession) return null;
 
         const now = Date.now();
 
-        // Add final segment
-        const finalSegment: EventSegment = {
-            start: lastStateChange,
-            end: now,
-            state: currentFocusState,
-            confidence: 0.8,
-        };
-
-        const allSegments = [...stateHistory, finalSegment];
+        // Add final segment only if not paused (paused time shouldn't count)
+        let allSegments = [...stateHistory];
+        if (!isPaused) {
+            const finalSegment: EventSegment = {
+                start: lastStateChange,
+                end: now,
+                state: currentFocusState,
+                confidence: 0.8,
+            };
+            allSegments.push(finalSegment);
+        }
 
         // Calculate stats
         let totalFocusMs = 0;
@@ -150,6 +164,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
             currentSession: null,
             elapsedTime: 0,
             stateHistory: [],
+            totalPausedTime: 0,
+            pauseStartTime: null,
         });
 
         return completedSession;
@@ -205,6 +221,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
             stateHistory: [],
             lastStateChange: 0,
             cameraPermission: 'pending',
+            totalPausedTime: 0,
+            pauseStartTime: null,
         });
     },
 }));
