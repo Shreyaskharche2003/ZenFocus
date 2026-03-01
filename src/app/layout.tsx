@@ -20,14 +20,32 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "ZenFocus - AI-Powered Focus & Productivity Tracker",
-  description: "Achieve deep focus with AI-powered attention tracking. ZenFocus uses computer vision to help you stay focused while respecting your privacy. All processing happens locally.",
-  keywords: ["focus tracker", "productivity", "AI", "attention monitoring", "study", "pomodoro"],
+  description: "Achieve deep focus with ZenFocus's AI-powered attention tracking. It evaluates your study patterns using local computer vision to help you reduce distractions and stay productive. 100% private.",
+  keywords: [
+    "AI focus tracker",
+    "productivity app",
+    "study timer",
+    "attention monitoring",
+    "distraction blocker",
+    "pomodoro timer",
+    "deep work tool",
+    "remote study room",
+    "private AI computer vision",
+    "ZenFocus"
+  ],
   authors: [{ name: "ZenFocus Team" }],
   openGraph: {
     title: "ZenFocus - AI-Powered Focus & Productivity Tracker",
-    description: "Achieve deep focus with AI-powered attention tracking.",
+    description: "Stay focused longer using AI computer vision. ZenFocus analyzes your attention in real-time, privately, without sending video to the cloud.",
     type: "website",
+    url: "https://zenfocus.vercel.app",
+    siteName: "ZenFocus",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "ZenFocus - Stay Productive with AI",
+    description: "Reduce distractions and improve your study sessions using AI. Try ZenFocus today.",
+  }
 };
 
 export default function RootLayout({
