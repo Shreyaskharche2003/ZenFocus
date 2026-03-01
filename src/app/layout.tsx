@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     title: "ZenFocus - AI-Powered Focus & Productivity Tracker",
     description: "Stay focused longer using AI computer vision. ZenFocus analyzes your attention in real-time, privately, without sending video to the cloud.",
     type: "website",
-    url: "https://zenfocus.vercel.app",
+    url: "https://zenfocused.vercel.app",
     siteName: "ZenFocus",
   },
   twitter: {
